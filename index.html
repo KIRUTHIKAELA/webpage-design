@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<head>
+    <title>Total cloud</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-+0n0xVW2eSR5OomGNYDnhzAbDsOXxcvSN1TPprVMTNDbiYZCxYbOOl7+AMvyTG2x" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-gtEjrD/SeCtmISkJkNUaaKMoLD0//ElJ19smozuHV6z3Iehds+3Ulb9Bn9Plx0x4"
+        crossorigin="anonymous"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+</head>
+<style>
+    .navbar {
+        background-color: #3b4ade;
+    }
+
+    #myLoader {
+        display: none;
+        position: fixed;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 9999;
+    }
+
+    #myLoader .spinner-svg {
+        width: 50px;
+        height: 50px;
+        margin: auto;
+        top: 26%;
+        position: relative;
+    }
+
+    .d-none {
+        display: none;
+    }
+
+    .user-avatar {
+        width: 100px;
+    }
+
+    .card {
+        display: flex;
+        align-items: center;
+        padding: 10%;
+        box-shadow: 0 2px 5px 1px rgb(64 60 67 / 16%);
+    }
+
+    .user-card:hover {
+        background: #f5f6fa;
+        cursor: pointer;
+    }
+
+    .close {
+        background: transparent;
+        border: none;
+        font-weight: 700;
+    }
+
+    #user-modal-image {
+        width: 50%;
+        border-radius: 5px;
+    }
+
+    #sort-by {
+        display: none;
+    }
+
+    #sort-by label {
+        font-size: 12px;
+    }
+</style>
+<script>
+    var users = [];
+    function getUsers() {
+        document.getElementById('myLoader').style.setProperty("display", "block");
+        const url = "https://reqres.in/api/users?delay=3";
+        const http = new XMLHttpRequest()
+        http.open('GET', url)
+        http.setRequestHeader('Content-type', 'application/json')
+        http.send()
+        http.onload = function () {
+            if (http.status == 200) {
+                document.getElementById("sort-by").style.display = "block";
+                document.getElementById('myLoader').style.display = "none";
+                users = JSON.parse(http.response).data;
+                showUserList(users);
+            } else {
+                document.getElementById('myLoader').style.display = "none";
+            }
+        }
+    }
+    function showUserList(users) {
+        var htmlContent = "";
+        for (i = 0; i < users.length; i++) {
+            htmlContent = htmlContent + '<div class="col-md-4 col-sm-12 mb-4" onclick="openModal(' + users[i].id + ')">' +
+                '<div class="card user-card">' +
+                '<img src="' + users[i].avatar + '" class="rounded-circle user-avatar" alt="avatar">' +
+                '<div class="card-body text-center">' +
+                '<h5 class="card-title">' + users[i].first_name + ' ' + users[i].last_name + '</h5>' +
+                '<p class="card-text">george.bluth@reqres.in</p>' +
+                '</div>' +
+                '</div>' +
+                '</div>';
+        }
+
+        document.getElementById("user-list").innerHTML = htmlContent;
+    }
+    function openModal(id) {
+        document.getElementById('myLoader').style.setProperty("display", "block");
+        const url = "https://reqres.in/api/users/" + id;
+        const http = new XMLHttpRequest()
+        http.open('GET', url)
+        http.setRequestHeader('Content-type', 'application/json')
+        http.send()
+        http.onload = function () {
+            if (http.status == 200) {
+                document.getElementById('myLoader').style.display = "none";
+                console.log(JSON.parse(http.response));
+                var userDetail = JSON.parse(http.response);
+                console.log(userDetail.data.avatar)
+                $(".modal-body #user-modal-image").attr('src', userDetail.data.avatar);
+                $(".modal-body #user-modal-name").text(userDetail.data.first_name + ' ' + userDetail.data.last_name);
+                $(".modal-body #user-modal-email").text(userDetail.data.email);
+                $('#exampleModalCenter').modal('show')
+            } else {
+                document.getElementById('myLoader').style.display = "none";
+            }
+        }
+    }
+    function closeModal() {
+        $('#exampleModalCenter').modal('hide')
+    }
+    function sortBy() {
+        var sortByValue = document.getElementById("sortInput").value;
+        if (sortByValue !== '') {
+            users = sortByKey(users, sortByValue);
+
+        } else {
+            users = sortByKey(users, 'id');
+        }
+        console.log(sortByValue, users)
+        showUserList(users)
+    }
+
+    function sortByKey(array, key) {
+        return array.sort(function (a, b) {
+            const x = a[key];
+            const y = b[key];
+            return ((x < y) ? -1 : ((x > y) ? 1 : 0))
+        })
+    }
+</script>
+
+<body onload="getUsers()">
+    <nav class="navbar">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">
+                <img src="https://uploads-ssl.webflow.com/5dd3975858fd7ffad8cd5e1f/5dd3975858fd7f4a25cd601e_Group%203%20(2).png"
+                    alt="" width="120" height="40" class="d-inline-block align-text-top">
+            </a>
+        </div>
+    </nav>
+    <div id="myLoader">
+        <div class="spinner-svg">
+            <img src="https://c.tenor.com/I6kN-6X7nhAAAAAj/loading-buffering.gif" style="width: 50px;">
+            loading...
+        </div>
+    </div>
+
+    <div class="container mt-4">
+        <div class="row">
+            <div class="form-group offset-md-10 col-md-2 mb-2" id="sort-by">
+                <label for="inputState">SORT BY</label>
+                <select id="sortInput" class="form-control mt-1" onchange="sortBy()">
+                    <option value="" selected>None</option>
+                    <option value="first_name">First name</option>
+                    <option value="last_name">Last name</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="row" id="user-list">
+        </div>
+    </div>
+
+    <!-- User Detail Modal -->
+    <div class="modal fade" id="exampleModalCenter" tabindex="-1" role="dialog"
+        aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h6 class="modal-title text-uppercase" id="exampleModalLongTitle">User details</h6>
+                    <button type="button" class="close" onclick="closeModal()" aria-label="Close">
+                        X
+                    </button>
+                </div>
+                <div class="modal-body text-center">
+                    <img id="user-modal-image" alt="loading" src="https://reqres.in/img/faces/1-image.jpg">
+                    <p class="m-0" id="user-modal-name"></p>
+                    <h6 id="user-modal-email"></h6>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>
